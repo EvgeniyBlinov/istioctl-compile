@@ -1,0 +1,40 @@
+# vim: set noet ci pi sts=0 sw=4 ts=4 :
+ARG GO_VERSION='latest'
+FROM golang:${GO_VERSION}
+
+ARG VERSION='1.15.5'
+ENV VERSION ${VERSION}
+ENV GIT_TAG ${VERSION}
+ENV GO_VERSION ${GO_VERSION}
+ENV FORCE_ALL true
+ENV SILENT false
+ENV GO_TOP /go
+ENV TOP /go
+ENV GO111MODULE auto
+ENV SOURCE_PATH $GOPATH/src/istio.io
+
+RUN apt update \
+	&& apt install -yqq \
+		jq
+
+RUN go version \
+	&& echo "git tag=${GIT_TAG}"
+
+RUN set -ex \
+	&& mkdir -p $SOURCE_PATH && cd $_
+
+RUN set -ex \
+	&& cd $SOURCE_PATH \
+	&& git clone https://github.com/istio/istio
+
+RUN apt update && apt install -qqy rsync
+
+RUN set -ex \
+	&& cd $SOURCE_PATH/istio \
+	&& git checkout ${GIT_TAG}
+
+RUN set -ex \
+	&& cd $SOURCE_PATH/istio \
+	&& make DEBUG=1 istioctl
+
+CMD ["tail", "-f", "/dev/null"]
