@@ -14,9 +14,10 @@ DOCKER_COMPOSE ?= docker-compose
 ## versions
 ## VERSION=GO_VERSION
 ## 1.2.2=1.12
+## 1.4.0=1.13
 
-VERSION ?= 1.2.2
-GO_VERSION ?= 1.12
+VERSION ?= 1.4.0
+GO_VERSION ?= 1.13
 ########################################################################
 # Default variables
 ########################################################################
@@ -32,6 +33,8 @@ build:
 
 .PHONY: copy
 copy:
-	$(SUDO) $(DOCKER) run -d istioctl:$(VERSION) && \
+	$(SUDO) $(DOCKER) run -d istioctl:$(VERSION) tail -f /dev/null && \
 	$(SUDO) $(DOCKER) cp $$($(SUDO) $(DOCKER) ps -q -f ancestor=istioctl:$(VERSION)|head -1):/go/out/linux_amd64/debug/istioctl ./ && \
+	$(SUDO) $(DOCKER) exec $$($(SUDO) $(DOCKER) ps -q -f ancestor=istioctl:$(VERSION)|head -1) /go/out/linux_amd64/debug/istioctl collateral --bash && \
+	$(SUDO) $(DOCKER) cp $$($(SUDO) $(DOCKER) ps -q -f ancestor=istioctl:$(VERSION)|head -1):/go/istioctl.bash ./ && \
 	$(SUDO) $(DOCKER) kill $$($(SUDO) $(DOCKER) ps -q -f ancestor=istioctl:$(VERSION)|head -1)
